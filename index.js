@@ -7,6 +7,8 @@ const nodemailer = require('nodemailer')
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const port = 5600;
+
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     secure: true,
@@ -41,4 +43,4 @@ app.post('/submit', async (req, res) => {
 })
 
 
-app.listen(5500);
+app.listen(port);
