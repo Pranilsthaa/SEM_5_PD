@@ -7,6 +7,8 @@ const upload = require('./middleware/ImageHandler');
 const path = require('path');
 const { postEvent, getEventByID, getEvents } = require('./controller/eventController');
 const { postInquiry } = require('./controller/inquiryController');
+const { postArticle, getArticles, getArticleById, searchArticle } = require('./controller/articleController');
+const { postFeedback } = require('./controller/feedbackController');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
@@ -94,10 +96,15 @@ const port = 5600;
 
 app.use(express.static((path.join(__dirname, 'public'))));
 
-app.post('/postevents', upload.single('banner'), postEvent)
+app.post('/postevents', upload.fields([{ name: "banner", maxCount: 1 }, { name: "additionalImages", maxCount: 10, }]), postEvent)
 app.get('/getevents', getEvents)
 app.get('/getevents/:eventID', getEventByID)
 app.post('/post_inquiry', postInquiry)
+app.post('/post_article', upload.single('photo'), postArticle)
+app.get('/getarticles', getArticles)
+app.get('/getarticles/:slug', getArticleById)
+app.get('/searchArticle', searchArticle)
+app.post('/post_feedback', postFeedback)
 
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server is running on port ${port}`);

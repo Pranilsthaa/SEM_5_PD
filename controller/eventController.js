@@ -2,10 +2,16 @@ const eventModel = require('../model/eventModel')
 
 async function postEvent(req, res) {
     const data = req.body;
-    const file = req.file;
+    const file = req.files;
     // console.log(data)
+    // console.log(file)
     try {
         let response = await eventModel.postEventData(data, file);
+        if (response) {
+            res.status(200).send('Event posted successfully');
+        } else {
+            res.status(404).send('Something went wrong');
+        }
         // console.log(response.insertId)
     } catch (err) {
         console.log(err);
@@ -35,11 +41,13 @@ async function getEventByID(req, res) {
     try {
         let eventById = await eventModel.getEventByID(eventID);
         let speakerById = await eventModel.getSpeakerDetailById(eventID);
+        let imageById = await eventModel.getEventImages(eventID);
         if (eventById && speakerById) {
             res.send(
                 {
                     eventById,
-                    speaker: speakerById || null
+                    speaker: speakerById || null,
+                    images: imageById || null
                 }
             );
         } else {
