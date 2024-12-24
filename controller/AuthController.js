@@ -16,7 +16,9 @@ async function adminLogin(req, res) {
 
         // Fetch the user from the database
         const result = await runQuery('SELECT * FROM admin_credential WHERE username=?', [username]);
-
+        if (result[0].role === 'terminated') {
+            return res.status(401).send({ message: 'Account Terminated ! Contact SuperAdmin' });
+        }
         if (result.length > 0) {
             const user = result[0];
             const hashPassword = user.password.toString();
@@ -65,7 +67,7 @@ async function createAdmin(req, res) {
 
 async function getAdminAccounts(req, res) {
     try {
-        const result = await runQuery('SELECT id, username, designation FROM admin_credential');
+        const result = await runQuery('SELECT id, username, designation, role FROM admin_credential');
         if (result) {
             return res.status(200).send(result);
         }
@@ -77,11 +79,10 @@ async function getAdminAccounts(req, res) {
 
 async function terminateAdminAccount(req, res) {
     const { id } = req.body;
-    console.log(id);
     try {
         const result = await runQuery('UPDATE admin_credential SET role=? where id=?', ['terminated', id]);
         if (result.affectedRows > 0) {
-            return res.status(200).send('Account Terminated');
+            return res.status(200).send({ message: 'Account Terminated' });
         }
     } catch (err) {
         console.error(err);
@@ -89,4 +90,17 @@ async function terminateAdminAccount(req, res) {
     }
 }
 
-module.exports = { adminLogin, createAdmin, getAdminAccounts, terminateAdminAccount }
+async function reactivateAdminAccount(req, res) {
+    const { id } = req.body;
+    try {
+        const result = await runQuery('UPDATE admin_credential SET role=? where id=?', ['admin', id]);
+        if (result.affectedRows > 0) {
+            return res.status(200).send({ message: 'Account Reactivated' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+}
+
+module.exports = { adminLogin, createAdmin, getAdminAccounts, terminateAdminAccount, reactivateAdminAccount }

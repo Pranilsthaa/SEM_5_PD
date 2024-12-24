@@ -10,7 +10,7 @@ const { postInquiry } = require('./controller/inquiryController');
 const { postArticle, getArticles, getArticleById, searchArticle } = require('./controller/articleController');
 const { postFeedback, getFeedbacks } = require('./controller/feedbackController');
 const { verifyUser, verifySuperAdmin } = require('./verifyUser');
-const { adminLogin, createAdmin, getAdminAccounts, terminateAdminAccount } = require('./controller/AuthController');
+const { adminLogin, createAdmin, getAdminAccounts, terminateAdminAccount, reactivateAdminAccount } = require('./controller/AuthController');
 require('dotenv').config();
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -77,18 +77,24 @@ const port = 5600;
 app.use(express.static((path.join(__dirname, 'public'))));
 app.post('/login', adminLogin)
 app.post('/createAdmin', verifySuperAdmin, createAdmin)
-app.post('/terminateAdminAccount', verifySuperAdmin, terminateAdminAccount)
 app.get('/getAdminAccounts', verifySuperAdmin, getAdminAccounts)
+app.post('/terminateAdminAccount', verifySuperAdmin, terminateAdminAccount)
+app.post('/reactivateAdminAccount', verifySuperAdmin, reactivateAdminAccount)
+
 app.post('/postevents', upload.fields([{ name: "banner", maxCount: 1 }, { name: "additionalImages", maxCount: 10, }]), postEvent)
 app.get('/getevents', getEvents)
 app.get('/getevents/:eventID', getEventByID)
+
 app.post('/post_inquiry', postInquiry)
+
 app.post('/post_article', upload.single('photo'), postArticle)
 app.get('/getarticles', getArticles)
 app.get('/getarticles/:slug', getArticleById)
 app.get('/searchArticle', searchArticle)
+
 app.post('/post_feedback', postFeedback)
 app.get('/getfeedbacks', getFeedbacks)
+
 app.get('/getevents-admin', getEventsAdmin)
 app.post('/edit-event/:id', upload.fields([{ name: "banner", maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]), editEvent)
 
