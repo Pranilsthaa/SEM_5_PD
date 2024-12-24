@@ -31,6 +31,19 @@ async function getEvents(req, res) {
     }
 }
 
+async function getEventsAdmin(req, res) {
+    try {
+        let response = await eventModel.getEventsAdmin();
+        if (response) {
+            res.status(200).send(response);
+        } else {
+            res.status(404).send('Event not found');
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
 async function getEventByID(req, res) {
     const { eventID } = req.params;
 
@@ -58,4 +71,23 @@ async function getEventByID(req, res) {
     }
 }
 
-module.exports = { postEvent, getEvents, getEventByID };
+async function editEvent(req, res) {
+    const { id } = req.params;
+    const data = req.body;
+    const file = req.files;
+    // console.log(data)
+    // console.log(file)
+    try {
+        let response = await eventModel.editEventData(data, file, id);
+        if (response) {
+            res.status(200).send('Event posted successfully');
+        } else {
+            res.status(404).send('Something went wrong');
+        }
+        // console.log(response.insertId)
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+module.exports = { postEvent, getEvents, getEventByID, getEventsAdmin, editEvent };

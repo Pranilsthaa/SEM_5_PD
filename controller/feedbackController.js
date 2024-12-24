@@ -13,5 +13,17 @@ async function postFeedback(req, res) {
         console.log(err);
     }
 }
+async function getFeedbacks(req, res) {
+    try {
+        let response = await feedbackModel.getFeedbacks();
+        if (response) {
+            res.status(200).send(response)
+        } else {
+            res.status(404).send('Error fetching feedbacks');
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
 
-module.exports = { postFeedback }
+module.exports = { postFeedback, getFeedbacks }

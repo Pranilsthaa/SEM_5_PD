@@ -16,4 +16,19 @@ function postFeedback(data) {
     );
 }
 
-module.exports = { postFeedback };
+function getFeedbacks() {
+
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM feedback';
+        connection.query(query, (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result);
+        });
+    }
+
+    );
+}
+
+module.exports = { postFeedback, getFeedbacks };

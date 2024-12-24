@@ -5,10 +5,13 @@ const nodemailer = require('nodemailer')
 const bodyParser = require('body-parser');
 const upload = require('./middleware/ImageHandler');
 const path = require('path');
-const { postEvent, getEventByID, getEvents } = require('./controller/eventController');
+const { postEvent, getEventByID, getEvents, getEventsAdmin, editEvent } = require('./controller/eventController');
 const { postInquiry } = require('./controller/inquiryController');
 const { postArticle, getArticles, getArticleById, searchArticle } = require('./controller/articleController');
-const { postFeedback } = require('./controller/feedbackController');
+const { postFeedback, getFeedbacks } = require('./controller/feedbackController');
+const { verifyUser, verifySuperAdmin } = require('./verifyUser');
+const { adminLogin, createAdmin, getAdminAccounts, terminateAdminAccount } = require('./controller/AuthController');
+require('dotenv').config();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
@@ -64,30 +67,7 @@ const port = 5600;
 
 // })
 
-// const jwt = require('jsonwebtoken');
-// const { verifyUser } = require('./verifyUser');
-// const { runQuery } = require('./connection');
 
-// app.post('/login', async (req, res) => {
-//     try {
-//         const { username, password } = req.body;
-//         const result = await runQuery('SELECT * FROM userdetail where name=?', [username])
-//         if (result.length > 0) {
-//             const user = result[0]
-//             if (user.password === password) {
-//                 const token = jwt.sign({ id: user.id, name: user.name }, 'pranil123')
-//                 return res.status(200).json({ token: token, message: "login Successful" })
-//             } else {
-//                 return res.status(401).json({ message: 'Invalid password' });
-//             }
-//         } else {
-//             return res.status(404).json({ message: 'User not found' });
-//         }
-//     } catch (err) {
-//         res.status(500).send('Internal Server Errorr')
-//         console.log(err)
-//     }
-// })
 
 // app.get('/details', verifyUser, (req, res) => {
 //     const userdetail = req.user
@@ -95,7 +75,10 @@ const port = 5600;
 // })
 
 app.use(express.static((path.join(__dirname, 'public'))));
-
+app.post('/login', adminLogin)
+app.post('/createAdmin', verifySuperAdmin, createAdmin)
+app.post('/terminateAdminAccount', verifySuperAdmin, terminateAdminAccount)
+app.get('/getAdminAccounts', verifySuperAdmin, getAdminAccounts)
 app.post('/postevents', upload.fields([{ name: "banner", maxCount: 1 }, { name: "additionalImages", maxCount: 10, }]), postEvent)
 app.get('/getevents', getEvents)
 app.get('/getevents/:eventID', getEventByID)
@@ -105,6 +88,9 @@ app.get('/getarticles', getArticles)
 app.get('/getarticles/:slug', getArticleById)
 app.get('/searchArticle', searchArticle)
 app.post('/post_feedback', postFeedback)
+app.get('/getfeedbacks', getFeedbacks)
+app.get('/getevents-admin', getEventsAdmin)
+app.post('/edit-event/:id', upload.fields([{ name: "banner", maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]), editEvent)
 
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server is running on port ${port}`);
