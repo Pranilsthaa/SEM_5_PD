@@ -31,4 +31,19 @@ function getFeedbacks() {
     );
 }
 
-module.exports = { postFeedback, getFeedbacks };
+function getFeedbacksCount() {
+
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT COUNT(*) as total FROM feedback';
+        connection.query(query, (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result);
+        });
+    }
+
+    );
+}
+
+module.exports = { postFeedback, getFeedbacks, getFeedbacksCount };

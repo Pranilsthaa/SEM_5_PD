@@ -1,16 +1,17 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const nodemailer = require('nodemailer')
+
 const bodyParser = require('body-parser');
 const upload = require('./middleware/ImageHandler');
 const path = require('path');
 const { postEvent, getEventByID, getEvents, getEventsAdmin, editEvent } = require('./controller/eventController');
-const { postInquiry } = require('./controller/inquiryController');
+const { postInquiry, getInquiry, respondToInquiry } = require('./controller/inquiryController');
 const { postArticle, getArticles, getArticleById, searchArticle } = require('./controller/articleController');
 const { postFeedback, getFeedbacks } = require('./controller/feedbackController');
 const { verifyUser, verifySuperAdmin } = require('./verifyUser');
 const { adminLogin, createAdmin, getAdminAccounts, terminateAdminAccount, reactivateAdminAccount } = require('./controller/AuthController');
+const { getDashboardData } = require('./controller/dashboardController');
 require('dotenv').config();
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -20,23 +21,7 @@ app.use(express.json());
 
 const port = 5600;
 
-// const transporter = nodemailer.createTransport({
-//     host: "smtp.gmail.com",
-//     secure: true,
-//     auth: {
-//         user: "pranilstha322@gmail.com",
-//         pass: "tjat zgtx tlzb zumy",
-//     },
-// });
 
-// const sendMail = async (name, email, subject, message) => {
-//     const info = await transporter.sendMail({
-//         from: email, // sender address
-//         to: 'pranilstha322@gmail.com', // list of receivers
-//         subject: subject, // Subject line
-//         html: `${message} <br><br><p>A mail by ${name}</p>`
-//     });
-// }
 
 // app.post('/submit', async (req, res) => {
 //     try {
@@ -85,7 +70,11 @@ app.post('/postevents', upload.fields([{ name: "banner", maxCount: 1 }, { name: 
 app.get('/getevents', getEvents)
 app.get('/getevents/:eventID', getEventByID)
 
+app.get('/getDashboardData', getDashboardData)
+
 app.post('/post_inquiry', postInquiry)
+app.get('/get_inquiry', getInquiry)
+app.post('/inquiry_respond', respondToInquiry)
 
 app.post('/post_article', upload.single('photo'), postArticle)
 app.get('/getarticles', getArticles)

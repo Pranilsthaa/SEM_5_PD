@@ -64,4 +64,16 @@ function searchArticle(key) {
     );
 }
 
-module.exports = { postArticle, getArticles, getArticleById, searchArticle };
+const getTotalArticle = () => {
+    return new Promise((resolve, reject) => {
+        const eventQuery = 'SELECT COUNT(*) AS total FROM article';
+        connection.query(eventQuery, (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result);
+        });
+    });
+};
+
+module.exports = { postArticle, getArticles, getArticleById, searchArticle, getTotalArticle };
