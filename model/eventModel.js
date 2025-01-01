@@ -3,22 +3,46 @@ const _ = require('lodash');
 
 function postEventData(data, file) {
     const { title, description, date, startTime, endTime, location, speakers } = data;
-    let parsedSpeakers = JSON.parse(speakers);
-    const { banner, additionalImages } = file;
-    console.log(file)
+    let parsedSpeakers;
+    try {
+        parsedSpeakers = speakers && speakers.length > 0 ? JSON.parse(speakers) : [];
+    } catch (err) {
+        return Promise.reject({ success: false, message: 'Invalid JSON format for speakers.' });
+    }
+
+    const { banner, additionalImages } = file || {};
+    // console.log(file)
+    // Validate required fields
+    const missingFields = [];
+    if (!title) missingFields.push('title');
+    if (!description) missingFields.push('description');
+    if (!date) missingFields.push('date');
+    if (!startTime) missingFields.push('startTime');
+    if (!endTime) missingFields.push('endTime');
+    if (!location) missingFields.push('location');
+    if (!banner || !banner[0] || !banner[0].filename) missingFields.push('banner');
+
+    if (missingFields.length > 0) {
+        return Promise.reject({
+            success: false,
+            message: 'Missing required fields.',
+            missingFields,
+        });
+    }
 
     return new Promise((resolve, reject) => {
         connection.beginTransaction(err => {
-            if (err) return reject(err);
+            if (err) return reject({ success: false, message: 'Transaction error.', error: err });
 
             const eventQuery = 'INSERT INTO events (title, description, start_time, end_time, date, location, banner_img) VALUES (?, ?, ?, ?, ?, ?, ?)';
             connection.query(eventQuery, [title, description, startTime, endTime, date, location, banner[0].filename], (err, eventResult) => {
                 if (err) {
                     return connection.rollback(() => {
                         console.error('Error inserting event:', err);
-                        reject(err);
+                        reject({ success: false, message: 'Error inserting event.', error: err });
                     });
                 }
+
 
                 const eventId = eventResult.insertId;
                 const speakerInserts = parsedSpeakers.map(speaker => {
@@ -33,42 +57,43 @@ function postEventData(data, file) {
                         });
                     });
                 });
-                const imageInsert = additionalImages.map(image => {
+
+                const imageInserts = additionalImages?.map(image => {
                     return new Promise((resolve, reject) => {
-                        const speakerQuery = "INSERT INTO events_image (image, event_id) VALUES (?, ?)";
-                        connection.query(speakerQuery, [image.filename, eventId], (err, result) => {
+                        const imageQuery = "INSERT INTO events_image (image, event_id) VALUES (?, ?)";
+                        connection.query(imageQuery, [image.filename, eventId], (err, result) => {
                             if (err) {
-                                console.error('Error inserting speaker:', err);
+                                console.error('Error inserting image:', err);
                                 return reject(err);
                             }
                             resolve(result);
                         });
                     });
-                });
+                }) || [];
 
-                Promise.all(speakerInserts, imageInsert)
-                    .then(results => {
+                Promise.all([...speakerInserts, ...imageInserts])
+                    .then(() => {
                         connection.commit(err => {
                             if (err) {
                                 return connection.rollback(() => {
                                     console.error('Error committing transaction:', err);
-                                    reject(err);
+                                    reject({ success: false, message: 'Error committing transaction.', error: err });
                                 });
                             }
-                            console.log('Transaction committed successfully.');
-                            resolve(results);
+                            resolve({ success: true, message: 'Transaction committed successfully.' });
                         });
                     })
                     .catch(err => {
                         connection.rollback(() => {
-                            console.error('Error during speaker inserts, rolling back:', err);
-                            reject(err);
+                            console.error('Error during inserts, rolling back:', err);
+                            reject({ success: false, message: 'Error during inserts, transaction rolled back.', error: err });
                         });
                     });
             });
         });
     });
 }
+
 
 function getEvents() {
     return new Promise((resolve, reject) => {
@@ -154,7 +179,17 @@ function editEventData(data, file, id) {
     const parsedSpeakers = typeof speakers === "string" ? JSON.parse(speakers) : speakers;
     const bannerFilename = existingBanner ? existingBanner : banner[0].filename;
     let existingimagesArr = Array.isArray(data.existingImages) ? existingImages : [existingImages];
-    const parsedExistingImages = existingimagesArr && existingimagesArr.length > 0 && existingimagesArr.map(image => JSON.parse(image));
+    const parsedExistingImages = existingimagesArr
+        && existingimagesArr.length > 0
+        && existingimagesArr.map(image => {
+            try {
+                return image ? JSON.parse(image) : null; // Parse only if the image is not null/undefined
+            } catch (error) {
+                console.error("Invalid JSON:", image, error);
+                return null; // Return null for invalid JSON
+            }
+        }).filter(parsed => parsed !== null); // Remove null entries if needed
+
 
     return new Promise((resolve, reject) => {
         const updateEventQuery = "UPDATE events SET title = ?, description = ?, start_time = ?, end_time = ?, date = ?, location = ?, banner_img=? WHERE id = ?";

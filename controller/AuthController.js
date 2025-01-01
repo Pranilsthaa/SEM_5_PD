@@ -36,7 +36,7 @@ async function adminLogin(req, res) {
         }
     }
     catch (err) {
-        res.status(500).json({ message: 'Internal Server Error' });
+        res.status(501).json({ message: 'Invalid Credential' });
     }
 }
 

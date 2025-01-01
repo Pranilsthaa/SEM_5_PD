@@ -9,7 +9,7 @@ const { postEvent, getEventByID, getEvents, getEventsAdmin, editEvent } = requir
 const { postInquiry, getInquiry, respondToInquiry } = require('./controller/inquiryController');
 const { postArticle, getArticles, getArticleById, searchArticle } = require('./controller/articleController');
 const { postFeedback, getFeedbacks } = require('./controller/feedbackController');
-const { verifyUser, verifySuperAdmin } = require('./verifyUser');
+const { verifySuperAdmin, verifyAdmin } = require('./verifyUser');
 const { adminLogin, createAdmin, getAdminAccounts, terminateAdminAccount, reactivateAdminAccount } = require('./controller/AuthController');
 const { getDashboardData } = require('./controller/dashboardController');
 require('dotenv').config();
@@ -20,8 +20,6 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 const port = 5600;
-
-
 
 // app.post('/submit', async (req, res) => {
 //     try {
@@ -66,17 +64,17 @@ app.get('/getAdminAccounts', verifySuperAdmin, getAdminAccounts)
 app.post('/terminateAdminAccount', verifySuperAdmin, terminateAdminAccount)
 app.post('/reactivateAdminAccount', verifySuperAdmin, reactivateAdminAccount)
 
-app.post('/postevents', upload.fields([{ name: "banner", maxCount: 1 }, { name: "additionalImages", maxCount: 10, }]), postEvent)
+app.post('/postevents', upload.fields([{ name: "banner", maxCount: 1 }, { name: "additionalImages", maxCount: 10, }]), verifyAdmin, postEvent)
 app.get('/getevents', getEvents)
 app.get('/getevents/:eventID', getEventByID)
 
-app.get('/getDashboardData', getDashboardData)
+app.get('/getDashboardData', verifyAdmin, getDashboardData)
 
 app.post('/post_inquiry', postInquiry)
 app.get('/get_inquiry', getInquiry)
 app.post('/inquiry_respond', respondToInquiry)
 
-app.post('/post_article', upload.single('photo'), postArticle)
+app.post('/post_article', upload.single('photo'), verifyAdmin, postArticle)
 app.get('/getarticles', getArticles)
 app.get('/getarticles/:slug', getArticleById)
 app.get('/searchArticle', searchArticle)
@@ -85,7 +83,7 @@ app.post('/post_feedback', postFeedback)
 app.get('/getfeedbacks', getFeedbacks)
 
 app.get('/getevents-admin', getEventsAdmin)
-app.post('/edit-event/:id', upload.fields([{ name: "banner", maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]), editEvent)
+app.post('/edit-event/:id', upload.fields([{ name: "banner", maxCount: 1 }, { name: 'additionalImages', maxCount: 10 }]), verifyAdmin, editEvent)
 
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server is running on port ${port}`);

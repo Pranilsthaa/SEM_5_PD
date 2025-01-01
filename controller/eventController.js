@@ -14,7 +14,7 @@ async function postEvent(req, res) {
         }
         // console.log(response.insertId)
     } catch (err) {
-        console.log(err);
+        res.status(400).send('missing field: ' + err.missingFields);
     }
 }
 
