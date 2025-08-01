@@ -1,79 +1,70 @@
-const { connection } = require("../connection");
+const { connection, runQuery } = require("../connection");
 
-function postArticle(data, file) {
-    const { author, title, description, slug } = data;
-    const { filename } = file
+async function postArticle(data, file) {
+  const { author, title, description, slug } = data;
+  const { filename } = file;
 
-    return new Promise((resolve, reject) => {
-        const eventQuery = 'INSERT INTO article (title, description, article_image, author, slug) VALUES (?, ?, ?, ?, ?)';
-        connection.query(eventQuery, [title, description, filename, author, slug],
-            (err, result) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve(result);
-            });
-    }
-
-    );
+  const eventQuery =
+    "INSERT INTO article (title, description, article_image, author, slug) VALUES (?, ?, ?, ?, ?)";
+  try {
+    const result = await runQuery(eventQuery, [
+      title,
+      description,
+      filename,
+      author,
+      slug,
+    ]);
+    return result;
+  } catch (err) {
+    throw err;
+  }
 }
 
-function getArticles(data, file) {
-
-    return new Promise((resolve, reject) => {
-        const eventQuery = 'SELECT * FROM article';
-        connection.query(eventQuery,
-            (err, result) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve(result);
-            });
-    }
-
-    );
+async function getArticles() {
+  const eventQuery = "SELECT * FROM article";
+  try {
+    const result = await runQuery(eventQuery);
+    return result;
+  } catch (err) {
+    throw err;
+  }
 }
 
-function getArticleById(slug) {
-
-    return new Promise((resolve, reject) => {
-        const eventQuery = 'SELECT * FROM article where slug = ?';
-        connection.query(eventQuery, [slug],
-            (err, result) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve(result);
-            });
-    }
-
-    );
-}
-function searchArticle(key) {
-    const searchKey = `%${key}%`;
-    return new Promise((resolve, reject) => {
-        const eventQuery = 'SELECT title, slug FROM article WHERE slug LIKE ?';
-        connection.query(eventQuery, [searchKey],
-            (err, result) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve(result);
-            });
-    }
-    );
+async function getArticleById(slug) {
+  const eventQuery = "SELECT * FROM article where slug = ?";
+  try {
+    const result = await runQuery(eventQuery, [slug]);
+    return result;
+  } catch (err) {
+    throw err;
+  }
 }
 
-const getTotalArticle = () => {
-    return new Promise((resolve, reject) => {
-        const eventQuery = 'SELECT COUNT(*) AS total FROM article';
-        connection.query(eventQuery, (err, result) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(result);
-        });
-    });
+async function searchArticle(key) {
+  const searchKey = `%${key}%`;
+  const eventQuery = "SELECT title, slug FROM article WHERE slug LIKE ?";
+  try {
+    const result = await runQuery(eventQuery, [searchKey]);
+    return result;
+  } catch (err) {
+    throw err;
+  }
+}
+
+const getTotalArticle = async () => {
+  const eventQuery = "SELECT COUNT(*) AS total FROM article";
+  try {
+    const result = await runQuery(eventQuery);
+    return result;
+  } catch (err) {
+    throw err;
+  }
 };
 
-module.exports = { postArticle, getArticles, getArticleById, searchArticle, getTotalArticle };
+module.exports = {
+  postArticle,
+  getArticles,
+  getArticleById,
+  searchArticle,
+  getTotalArticle,
+};

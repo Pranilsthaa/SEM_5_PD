@@ -1,49 +1,43 @@
-const { connection } = require("../connection");
+const { connection, runQuery } = require("../connection");
 
-function postFeedback(data) {
-    const { name, email, service, feedback, url, rating } = data;
+async function postFeedback(data) {
+  const { name, email, service, feedback, url, rating } = data;
 
-    return new Promise((resolve, reject) => {
-        const eventQuery = 'INSERT INTO feedback (name, email, service, message, image, rating) VALUES (?, ?, ?, ?, ?, ?)';
-        connection.query(eventQuery, [name, email, service, feedback, url, rating], (err, result) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(result);
-        });
-    }
-
-    );
+  const eventQuery =
+    "INSERT INTO feedback (name, email, service, message, image, rating) VALUES (?, ?, ?, ?, ?, ?)";
+  try {
+    const result = await runQuery(eventQuery, [
+      name,
+      email,
+      service,
+      feedback,
+      url,
+      rating,
+    ]);
+    return result;
+  } catch (err) {
+    throw err;
+  }
 }
 
-function getFeedbacks() {
-
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM feedback';
-        connection.query(query, (err, result) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(result);
-        });
-    }
-
-    );
+async function getFeedbacks() {
+  const query = "SELECT * FROM feedback";
+  try {
+    const result = await runQuery(query);
+    return result;
+  } catch (err) {
+    throw err;
+  }
 }
 
-function getFeedbacksCount() {
-
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT COUNT(*) as total FROM feedback';
-        connection.query(query, (err, result) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(result);
-        });
-    }
-
-    );
+async function getFeedbacksCount() {
+  const query = "SELECT COUNT(*) as total FROM feedback";
+  try {
+    const result = await runQuery(query);
+    return result;
+  } catch (err) {
+    throw err;
+  }
 }
 
 module.exports = { postFeedback, getFeedbacks, getFeedbacksCount };
